@@ -86,7 +86,7 @@ const boardSlice = createSlice({
 
     
 editCardInList: (state, action) => {
-  const { boardIndex, listIndex, cardId, newTitle, newAssignee } = action.payload;
+  const { boardIndex, listIndex, cardId, newTitle, newAssignee, newCompleted } = action.payload;
   const card = state.boards[boardIndex].list[listIndex].items.find(item => item.id === cardId);
   if (card) {
     if (typeof newTitle === 'string') {
@@ -94,6 +94,9 @@ editCardInList: (state, action) => {
     }
     if (typeof newAssignee === 'string') {
       card.assignee = newAssignee;
+    }
+    if (typeof newCompleted === 'boolean') {
+      card.completed = newCompleted;
     }
     saveBoardsToStorage(state.boards);
   }

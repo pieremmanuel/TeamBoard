@@ -10,10 +10,12 @@ const CardAdd = ({ getcard }) => {
     const trimmedCard = card.trim();
     if (!trimmedCard) return;
 
+
     const newCard = {
       id: Utils.makeid(5),
       title: trimmedCard,
       assignee: '',
+      completed: false,
     };
 
     getcard(newCard);

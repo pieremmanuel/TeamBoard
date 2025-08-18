@@ -7,6 +7,18 @@ const TaskCard = ({ item, boardIndex, listIndex, dispatch }) => {
   const [title, setTitle] = useState(item.title || '');
   const [assignee, setAssignee] = useState(item.assignee || '');
   const [editingAssignee, setEditingAssignee] = useState(false);
+  const completed = item.completed || false;
+  const handleToggleComplete = () => {
+    dispatch({
+      type: 'board/editCardInList',
+      payload: {
+        boardIndex,
+        listIndex,
+        cardId: item.id,
+        newCompleted: !completed,
+      },
+    });
+  };
 
   // Get users from localStorage
   const users = JSON.parse(localStorage.getItem('users')) || [];
@@ -66,22 +78,35 @@ const TaskCard = ({ item, boardIndex, listIndex, dispatch }) => {
   };
 
   return (
-    <div className="item flex flex-col bg-zinc-700 p-1 cursor-pointer rounded-md border-2 border-zinc-900 hover:border-gray-500">
+    <div className={`item flex flex-col bg-zinc-700 p-1 cursor-pointer rounded-md border-2 border-zinc-900 hover:border-gray-500 ${completed ? 'opacity-60' : ''}`}>
       <div className="flex justify-between items-center">
-        {editing ? (
+        <div className="flex items-center">
           <input
-            className="bg-zinc-800 text-white rounded px-1 py-0.5 w-full mr-2"
-            value={title}
-            autoFocus
-            onChange={e => setTitle(e.target.value)}
-            onBlur={handleSave}
-            onKeyDown={handleKeyDown}
+            type="checkbox"
+            checked={completed}
+            onChange={handleToggleComplete}
+            className="mr-2 accent-green-500"
+            title="Mark complete"
           />
-        ) : (
-          <span onDoubleClick={handleEdit} title="Double click to edit">
-            {item.title}
-          </span>
-        )}
+          {editing ? (
+            <input
+              className="bg-zinc-800 text-white rounded px-1 py-0.5 w-full mr-2"
+              value={title}
+              autoFocus
+              onChange={e => setTitle(e.target.value)}
+              onBlur={handleSave}
+              onKeyDown={handleKeyDown}
+            />
+          ) : (
+            <span
+              onDoubleClick={handleEdit}
+              title="Double click to edit"
+              style={completed ? { textDecoration: 'line-through', color: '#aaa' } : {}}
+            >
+              {item.title}
+            </span>
+          )}
+        </div>
         <span className="flex justify-start items-start">
           <button
             type="button"

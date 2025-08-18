@@ -4,19 +4,10 @@ import Sidebar from './components/Sidebar';
 import Main from './components/Main';
 import Login from './components/Login';
 import Signup from './components/Signup';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import Dashboard from './components/Dashboard';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import withAuth from './hocs/withAuth';
 
-// Protected route wrapper
-function ProtectedRoute({ children }) {
-  const { user, loading } = useSelector((state) => state.user);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  return user ? children : <Navigate to="/login" />;
-}
 
 // Main app content
 function AppContent() {
@@ -25,11 +16,16 @@ function AppContent() {
       <Header />
       <div className="flex">
         <Sidebar />
-        <Main />
+        <Routes>
+          <Route path="/" element={<Main />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
       </div>
     </>
   );
 }
+
+const ProtectedAppContent = withAuth(AppContent);
 
 // App entry point
 function App() {
@@ -38,14 +34,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <AppContent />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/*" element={<ProtectedAppContent />} />
       </Routes>
     </Router>
   );

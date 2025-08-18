@@ -1,4 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
+import { useState } from 'react';
 import { MoreHorizontal, UserPlus } from 'react-feather';
 import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import AddList from './AddList';
@@ -13,6 +14,18 @@ const Main = () => {
   const dispatch = useDispatch();
   const { boards, active } = useSelector((state) => state.board);
   const bdata = boards[active];
+
+  // Filter state
+  const [selectedUser, setSelectedUser] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+
+  // Get all users from localStorage
+  const users = JSON.parse(localStorage.getItem('users')) || [];
+
+  // Status options from list titles
+  const statusOptions = bdata && Array.isArray(bdata.list)
+    ? bdata.list.map(list => list.title)
+    : [];
 
   if (!bdata || !Array.isArray(bdata.list)) {
     return <div className="p-4 text-red-500">No board data available.</div>;
@@ -71,8 +84,6 @@ const Main = () => {
     }
   };
 
-
-
   const listData = (title) => {
     dispatch(addListToBoard({ boardIndex: active, title }));
   };
@@ -92,6 +103,36 @@ const Main = () => {
         </div>
       </div>
 
+      {/* Filter UI */}
+      <div className="flex flex-row items-center gap-4 px-4 py-2 bg-black bg-opacity-30">
+        <div>
+          <label className="text-white mr-2">Filter by User:</label>
+          <select
+            value={selectedUser}
+            onChange={e => setSelectedUser(e.target.value)}
+            className="rounded p-1 bg-zinc-700 text-white"
+          >
+            <option value="">All</option>
+            {users.map(user => (
+              <option key={user.id} value={user.id}>{user.username}</option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="text-white mr-2">Filter by Status:</label>
+          <select
+            value={selectedStatus}
+            onChange={e => setSelectedStatus(e.target.value)}
+            className="rounded p-1 bg-zinc-700 text-white"
+          >
+            <option value="">All</option>
+            {statusOptions.map(status => (
+              <option key={status} value={status}>{status}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="flex flex-grow overflow-x-auto p-3 space-x-3">
           <Droppable droppableId={`board-${active}`} direction="horizontal" type="LIST">
@@ -104,6 +145,8 @@ const Main = () => {
                     listIndex={ind}
                     boardIndex={active}
                     dispatch={dispatch}
+                    filterUser={selectedUser}
+                    filterStatus={selectedStatus}
                   />
                 ))}
                 {provided.placeholder}

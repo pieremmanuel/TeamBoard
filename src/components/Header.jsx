@@ -1,5 +1,5 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { logoutUser } from '../redux/slices/userSlice';
 
 const Header = () => {
@@ -32,7 +32,11 @@ const Header = () => {
 
   return (
     <div className="bg-[#1d2125] w-full h-12 p-3 border-b border-[#9fadbc29] flex justify-between items-center">
-      <h3 className="text-slate-50 font-semibold">TeamBoard</h3>
+      <div className="flex items-center gap-6">
+        <h3 className="text-slate-50 font-semibold">TeamBoard</h3>
+        <Link to="/" className="text-blue-300 hover:underline text-base">Board</Link>
+        <Link to="/dashboard" className="text-blue-300 hover:underline text-base">Dashboard</Link>
+      </div>
       {user && <UserInfo user={user} />}
     </div>
   );
