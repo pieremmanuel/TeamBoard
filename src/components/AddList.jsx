@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { X, Plus } from 'react-feather';
-import { useDispatch } from 'react-redux';
-import { addList } from '../redux/slices/listSlice';
 
-const AddList = () => {
+const AddList = (props) => {
   const [list, setList] = useState('');
   const [show, setShow] = useState(false);
-  const dispatch = useDispatch();
 
   const handleSave = () => {
     if (!list.trim()) return;
-    dispatch(addList(list.trim()));
+    if (props.getlist) {
+      props.getlist(list.trim());
+    }
     setList('');
     setShow(false);
   };

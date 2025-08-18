@@ -1,7 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const initialState = {
-  boards: JSON.parse(localStorage.getItem('boards')) || [
+function getInitialBoards() {
+  try {
+    const stored = JSON.parse(localStorage.getItem('boards'));
+    if (Array.isArray(stored) && stored.length > 0) return stored;
+  } catch {}
+  return [
     {
       name: 'My Board',
       bgcolor: '#069',
@@ -11,7 +15,11 @@ const initialState = {
         { id: '3', title: 'Done', items: [{ id: 'cdrFb', title: 'Project Description 3' }] },
       ],
     },
-  ],
+  ];
+}
+
+const initialState = {
+  boards: getInitialBoards(),
   active: 0,
 };
 

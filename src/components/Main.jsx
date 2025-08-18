@@ -16,6 +16,14 @@ const Main = () => {
   const { boards, active } = useSelector((state) => state.board);
   const bdata = boards[active];
 
+  if (!bdata || !Array.isArray(bdata.list)) {
+    return (
+      <div className="flex flex-col w-full items-center justify-center h-full">
+        <p className="text-gray-400 text-lg mt-10">No board data found or board is not initialized.</p>
+      </div>
+    );
+  }
+
   const onDragEnd = (res) => {
     if (!res.destination) return;
 
