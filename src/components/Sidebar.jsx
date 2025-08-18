@@ -43,7 +43,7 @@ const Sidebar = () => {
           <div className="workspace p-3 flex justify-between items-center border-b border-b-[#9fadbc29]">
             <div className="flex items-center space-x-2">
               <img
-                src="https://placehold.co/28x28/png"
+                src="https://www.pngitem.com/pimgs/m/421-4212617_person-placeholder-image-transparent-hd-png-download.png"
                 alt="User avatar"
                 className="rounded-full w-7 h-7"
               />

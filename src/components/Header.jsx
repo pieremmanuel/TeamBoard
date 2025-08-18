@@ -18,7 +18,7 @@ const Header = () => {
       <span>{user?.username || 'Guest'}</span>
       <img
         className="rounded-full w-7 h-7"
-        src="https://placehold.co/28x28/png"
+        src="https://www.pngitem.com/pimgs/m/421-4212617_person-placeholder-image-transparent-hd-png-download.png"
         alt={`${user?.username || 'User'} avatar`}
       />
       <button
