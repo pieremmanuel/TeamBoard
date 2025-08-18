@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../redux/slices/userSlice';
+import { setSession } from '../redux/slices/sessionSlice';
+import { saveSessionToLocalStorage } from '../utils/sessionStorage';
+import { resetBoards } from '../redux/slices/boardSlice';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -12,10 +15,30 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     const users = JSON.parse(localStorage.getItem('users')) || [];
-    const user = users.find(u => u.username === username && u.password === password);
-    if (user) {
+  const user = users.find(u => u.username === username && u.password === password);
+
+    if (user && user.id) {
+      // Dispatch user login
       dispatch(loginUser(user));
+
+      // Set default or last active board
+      const defaultBoardId = user.lastBoardId || 0;
+
+      // Dispatch session info
+      const sessionData = {
+        userId: user.id,
+        username: user.username,
+        activeBoard: defaultBoardId,
+      };
+
+      dispatch(setSession(sessionData));
+      saveSessionToLocalStorage(sessionData);
+
+      // Reset boards for this user
+      dispatch(resetBoards());
+
       navigate('/');
     } else {
       setError('Invalid credentials');

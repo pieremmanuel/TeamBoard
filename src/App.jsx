@@ -8,20 +8,34 @@ import Signup from './components/Signup';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
+// Protected route wrapper
 function ProtectedRoute({ children }) {
   const { user, loading } = useSelector((state) => state.user);
 
   if (loading) {
-    return <div className="loading">Loading...</div>;
+    return <div>Loading...</div>;
   }
 
   return user ? children : <Navigate to="/login" />;
 }
 
+// Main app content
 function AppContent() {
   return (
     <>
       <Header />
+      <div className="flex">
+        <Sidebar />
+        <Main />
+      </div>
+    </>
+  );
+}
+
+// App entry point
+function App() {
+  return (
+    <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
@@ -29,22 +43,11 @@ function AppContent() {
           path="/"
           element={
             <ProtectedRoute>
-              <div className="content flex">
-                <Sidebar />
-                <Main />
-              </div>
+              <AppContent />
             </ProtectedRoute>
           }
         />
       </Routes>
-    </>
-  );
-}
-
-function App() {
-  return (
-    <Router>
-      <AppContent />
     </Router>
   );
 }

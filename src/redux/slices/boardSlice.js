@@ -1,8 +1,11 @@
 import { createSlice } from '@reduxjs/toolkit';
 
+
 function getInitialBoards() {
   try {
-    const stored = JSON.parse(localStorage.getItem('boards'));
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || !user.id) return [];
+    const stored = JSON.parse(localStorage.getItem(`boards_${user.id}`));
     if (Array.isArray(stored) && stored.length > 0) return stored;
   } catch {}
   return [
@@ -18,6 +21,14 @@ function getInitialBoards() {
   ];
 }
 
+
+function saveBoardsToStorage(boards) {
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (user && user.id) {
+    localStorage.setItem(`boards_${user.id}`, JSON.stringify(boards));
+  }
+}
+
 const initialState = {
   boards: getInitialBoards(),
   active: 0,
@@ -29,7 +40,7 @@ const boardSlice = createSlice({
   reducers: {
     setBoards: (state, action) => {
       state.boards = action.payload;
-      localStorage.setItem('boards', JSON.stringify(state.boards));
+      saveBoardsToStorage(state.boards);
     },
     setActiveBoard: (state, action) => {
       state.active = action.payload;
@@ -37,12 +48,12 @@ const boardSlice = createSlice({
     updateBoardList: (state, action) => {
       const { boardIndex, list } = action.payload;
       state.boards[boardIndex].list = list;
-      localStorage.setItem('boards', JSON.stringify(state.boards));
+      saveBoardsToStorage(state.boards);
     },
     addCardToList: (state, action) => {
       const { boardIndex, listIndex, card } = action.payload;
       state.boards[boardIndex].list[listIndex].items.push(card);
-      localStorage.setItem('boards', JSON.stringify(state.boards));
+      saveBoardsToStorage(state.boards);
     },
     addListToBoard: (state, action) => {
       const { boardIndex, title } = action.payload;
@@ -52,11 +63,30 @@ const boardSlice = createSlice({
         items: [],
       };
       state.boards[boardIndex].list.push(newList);
-      localStorage.setItem('boards', JSON.stringify(state.boards));
+      saveBoardsToStorage(state.boards);
     },
     addBoard: (state, action) => {
       state.boards.push(action.payload);
-      localStorage.setItem('boards', JSON.stringify(state.boards));
+      saveBoardsToStorage(state.boards);
+    },
+    reorderListsInBoard: (state, action) => {
+      const { boardIndex, sourceIndex, destinationIndex } = action.payload;
+      const lists = state.boards[boardIndex].list;
+      const [moved] = lists.splice(sourceIndex, 1);
+      lists.splice(destinationIndex, 0, moved);
+      saveBoardsToStorage(state.boards);
+    },
+    reorderBoards: (state, action) => {
+      const { sourceIndex, destinationIndex } = action.payload;
+      const [moved] = state.boards.splice(sourceIndex, 1);
+      state.boards.splice(destinationIndex, 0, moved);
+      saveBoardsToStorage(state.boards);
+    },
+
+    // Reset boards state for the current user (e.g., after login)
+    resetBoards: (state) => {
+      state.boards = getInitialBoards();
+      state.active = 0;
     },
   },
 });
@@ -68,6 +98,9 @@ export const {
   addCardToList,
   addListToBoard,
   addBoard,
+  reorderListsInBoard,
+  reorderBoards,
+  resetBoards,
 } = boardSlice.actions;
 
 export default boardSlice.reducer;

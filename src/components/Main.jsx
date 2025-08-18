@@ -8,7 +8,8 @@ import Utils from '../utils/Utils';
 import {
   updateBoardList,
   addCardToList,
-  addListToBoard
+  addListToBoard,
+  reorderListsInBoard
 } from '../redux/slices/boardSlice';
 
 const Main = () => {
@@ -17,23 +18,64 @@ const Main = () => {
   const bdata = boards[active];
 
   if (!bdata || !Array.isArray(bdata.list)) {
-    return (
-      <div className="flex flex-col w-full items-center justify-center h-full">
-        <p className="text-gray-400 text-lg mt-10">No board data found or board is not initialized.</p>
-      </div>
-    );
+    return <div className="p-4 text-red-500">No board data available.</div>;
   }
 
-  const onDragEnd = (res) => {
-    if (!res.destination) return;
+  const onDragEnd = ({ source, destination, type }) => {
+    if (!destination) return;
 
-    const newList = [...bdata.list];
-    const s_id = parseInt(res.source.droppableId);
-    const d_id = parseInt(res.destination.droppableId);
-    const [removed] = newList[s_id - 1].items.splice(res.source.index, 1);
-    newList[d_id - 1].items.splice(res.destination.index, 0, removed);
+    if (type === 'LIST') {
+      dispatch(reorderListsInBoard({
+        boardIndex: active,
+        sourceIndex: source.index,
+        destinationIndex: destination.index
+      }));
+      return;
+    }
 
-    dispatch(updateBoardList({ boardIndex: active, list: newList }));
+    
+if (type === 'CARD') {
+  const sourceListId = source.droppableId;
+  const destListId = destination.droppableId;
+
+  const sourceIndex = bdata.list.findIndex(list => list.id === sourceListId);
+  const destIndex = bdata.list.findIndex(list => list.id === destListId);
+
+  if (sourceIndex === -1 || destIndex === -1) return;
+
+  const updatedLists = [...bdata.list];
+
+  if (sourceListId === destListId) {
+    // Reordering within the same list
+    const items = Array.from(updatedLists[sourceIndex].items);
+    const [movedCard] = items.splice(source.index, 1);
+    items.splice(destination.index, 0, movedCard);
+
+    updatedLists[sourceIndex] = {
+      ...updatedLists[sourceIndex],
+      items,
+    };
+  } else {
+    // Moving between different lists
+    const sourceItems = Array.from(updatedLists[sourceIndex].items);
+    const destItems = Array.from(updatedLists[destIndex].items);
+
+    const [movedCard] = sourceItems.splice(source.index, 1);
+    destItems.splice(destination.index, 0, movedCard);
+
+    updatedLists[sourceIndex] = {
+      ...updatedLists[sourceIndex],
+      items: sourceItems,
+    };
+    updatedLists[destIndex] = {
+      ...updatedLists[destIndex],
+      items: destItems,
+    };
+  }
+
+  dispatch(updateBoardList({ boardIndex: active, list: updatedLists }));
+}
+
   };
 
   const cardData = (title, listIndex) => {
@@ -63,56 +105,70 @@ const Main = () => {
       <div className='flex flex-col w-full flex-grow relative'>
         <div className='absolute mb-1 pb-2 left-0 right-0 top-0 bottom-0 p-3 flex overflow-x-scroll overflow-y-hidden'>
           <DragDropContext onDragEnd={onDragEnd}>
-            {bdata.list.map((list, ind) => (
-              <div key={ind} className='mr-3 w-60 h-fit rounded-md p-2 bg-black flex-shrink-0'>
-                <div className="list-body">
-                  <div className='flex justify-between p-1'>
-                    <span>{list.title}</span>
-                    <button className='hover:bg-gray-500 p-1 rounded-sm'>
-                      <MoreHorizontal size={16} />
-                    </button>
-                  </div>
+            <Droppable droppableId="board-droppable" direction="horizontal" type="LIST">
+              {(provided) => (
+                <div className="flex" ref={provided.innerRef} {...provided.droppableProps}>
+                  {bdata.list.map((list, ind) => (
+                    <Draggable draggableId={list.id} index={ind} key={list.id}>
+                      {(provided) => (
+                        <div
+                          className='mr-3 w-60 h-fit rounded-md p-2 bg-black flex-shrink-0'
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                        >
+                          <div className="list-body">
+                            <div className='flex justify-between p-1' {...provided.dragHandleProps}>
+                              <span>{list.title}</span>
+                              <button className='hover:bg-gray-500 p-1 rounded-sm'>
+                                <MoreHorizontal size={16} />
+                              </button>
+                            </div>
 
-                  <Droppable droppableId={list.id}>
-                    {(provided, snapshot) => (
-                      <div
-                        className='py-1'
-                        ref={provided.innerRef}
-                        style={{ backgroundColor: snapshot.isDraggingOver ? '#222' : 'transparent' }}
-                        {...provided.droppableProps}
-                      >
-                        {list.items.map((item, index) => (
-                          <Draggable key={item.id} draggableId={item.id} index={index}>
-                            {(provided, snapshot) => (
-                              <div
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                              >
-                                <div className="item flex justify-between items-center bg-zinc-700 p-1 cursor-pointer rounded-md border-2 border-zinc-900 hover:border-gray-500">
-                                  <span>{item.title}</span>
-                                  <span className='flex justify-start items-start'>
-                                    <button className='hover:bg-gray-600 p-1 rounded-sm'>
-                                      <Edit2 size={16} />
-                                    </button>
-                                  </span>
+                            <Droppable droppableId={list.id} type="CARD">
+                              {(provided, snapshot) => (
+                                <div
+                                  className='py-1'
+                                  ref={provided.innerRef}
+                                  style={{ backgroundColor: snapshot.isDraggingOver ? '#222' : 'transparent' }}
+                                  {...provided.droppableProps}
+                                >
+                                  {list.items.map((item, index) => (
+                                    <Draggable key={item.id} draggableId={item.id} index={index}>
+                                      {(provided) => (
+                                        <div
+                                          ref={provided.innerRef}
+                                          {...provided.draggableProps}
+                                          {...provided.dragHandleProps}
+                                        >
+                                          <div className="item flex justify-between items-center bg-zinc-700 p-1 cursor-pointer rounded-md border-2 border-zinc-900 hover:border-gray-500">
+                                            <span>{item.title}</span>
+                                            <span className='flex justify-start items-start'>
+                                              <button className='hover:bg-gray-600 p-1 rounded-sm'>
+                                                <Edit2 size={16} />
+                                              </button>
+                                            </span>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </Draggable>
+                                  ))}
+                                  {provided.placeholder}
                                 </div>
-                              </div>
-                            )}
-                          </Draggable>
-                        ))}
-                        {provided.placeholder}
-                      </div>
-                    )}
-                  </Droppable>
+                              )}
+                            </Droppable>
 
-                  <CardAdd getcard={(e) => cardData(e, ind)} />
+                            <CardAdd getcard={(e) => cardData(e, ind)} />
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                  <AddList getlist={listData} />
                 </div>
-              </div>
-            ))}
+              )}
+            </Droppable>
           </DragDropContext>
-
-          <AddList getlist={listData} />
         </div>
       </div>
     </div>

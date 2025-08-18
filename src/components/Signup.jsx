@@ -18,12 +18,14 @@ const Signup = () => {
       return;
     }
 
-    users.push({ username, password });
-    localStorage.setItem('users', JSON.stringify(users));
-    setSuccess('Signup successful! You can now login.');
-    setError('');
-    setUsername('');
-    setPassword('');
+  // Generate a unique id for the user
+  const id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+  users.push({ id, username, password });
+  localStorage.setItem('users', JSON.stringify(users));
+  setSuccess('Signup successful! You can now login.');
+  setError('');
+  setUsername('');
+  setPassword('');
   };
 
   const handleNavigateToLogin = () => {
