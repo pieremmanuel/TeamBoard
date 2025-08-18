@@ -1,3 +1,4 @@
+// ...existing code...
 import { createSlice } from '@reduxjs/toolkit';
 
 
@@ -83,6 +84,32 @@ const boardSlice = createSlice({
       saveBoardsToStorage(state.boards);
     },
 
+    
+editCardInList: (state, action) => {
+  const { boardIndex, listIndex, cardId, newTitle, newAssignee } = action.payload;
+  const card = state.boards[boardIndex].list[listIndex].items.find(item => item.id === cardId);
+  if (card) {
+    if (typeof newTitle === 'string') {
+      card.title = newTitle;
+    }
+    if (typeof newAssignee === 'string') {
+      card.assignee = newAssignee;
+    }
+    saveBoardsToStorage(state.boards);
+  }
+}
+,
+
+    deleteCardFromList: (state, action) => {
+      const { boardIndex, listIndex, cardId } = action.payload;
+      const items = state.boards[boardIndex].list[listIndex].items;
+      const idx = items.findIndex(item => item.id === cardId);
+      if (idx !== -1) {
+        items.splice(idx, 1);
+        saveBoardsToStorage(state.boards);
+      }
+    },
+
     // Reset boards state for the current user (e.g., after login)
     resetBoards: (state) => {
       state.boards = getInitialBoards();
@@ -101,6 +128,8 @@ export const {
   reorderListsInBoard,
   reorderBoards,
   resetBoards,
+  editCardInList,
+  deleteCardFromList,
 } = boardSlice.actions;
 
 export default boardSlice.reducer;
