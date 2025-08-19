@@ -8,6 +8,7 @@ const mockStore = configureStore([]);
 
 describe('Main component', () => {
   let store;
+  let consoleErrorSpy;
 
   beforeEach(() => {
     store = mockStore({
@@ -26,6 +27,16 @@ describe('Main component', () => {
       },
     });
     store.dispatch = jest.fn();
+
+    // Spy on console.error to log errors
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation((...args) => {
+      // You can customize this to log to a file or format differently
+      console.log('Error logged during test:', ...args);
+    });
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   it('renders board name', () => {
