@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { X, Plus } from 'react-feather';
 import Utils from '../utils/Utils'; // Make sure this path is correct
 
