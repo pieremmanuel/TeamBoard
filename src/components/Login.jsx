@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../redux/slices/userSlice';
+import { loginUser, setError } from '../redux/slices/userSlice';
 import { setSession } from '../redux/slices/sessionSlice';
 import { saveSessionToLocalStorage } from '../utils/sessionStorage';
 import { resetBoards } from '../redux/slices/boardSlice';
@@ -9,39 +9,38 @@ import { resetBoards } from '../redux/slices/boardSlice';
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const error = useSelector((state) => state.user.error);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-  const user = users.find(u => u.username === username && u.password === password);
+    try {
+      const users = JSON.parse(localStorage.getItem('users')) || [];
+      const user = users.find(u => u.username === username && u.password === password);
 
-    if (user && user.id) {
-      // Dispatch user login
-      dispatch(loginUser(user));
+      if (user && user.id) {
+        dispatch(loginUser(user));
 
-      // Set default or last active board
-      const defaultBoardId = user.lastBoardId || 0;
+        const defaultBoardId = user.lastBoardId || 0;
+        const sessionData = {
+          userId: user.id,
+          username: user.username,
+          activeBoard: defaultBoardId,
+        };
 
-      // Dispatch session info
-      const sessionData = {
-        userId: user.id,
-        username: user.username,
-        activeBoard: defaultBoardId,
-      };
+        dispatch(setSession(sessionData));
+        saveSessionToLocalStorage(sessionData);
+        dispatch(resetBoards());
 
-      dispatch(setSession(sessionData));
-      saveSessionToLocalStorage(sessionData);
-
-      // Reset boards for this user
-      dispatch(resetBoards());
-
-      navigate('/');
-    } else {
-      setError('Invalid credentials');
+        navigate('/');
+      } else {
+        dispatch(setError('Invalid credentials'));
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      dispatch(setError('Login failed due to unexpected error'));
     }
   };
 
